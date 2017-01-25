@@ -35,17 +35,24 @@ task generatePom << {
 
 jar {
     baseName = artifactName
-    manifest {
-        attributes(
-                "Implementation-Title": baseName,
-                "Implementation-Version": version,
-        )
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
     }
+
+    manifest {
+        attributes 'Implementation-Title': artifactName,
+                'Implementation-Version': version,
+                'Built-By': 'theVite',
+                'Built-Date': new Date(),
+                'Main-Class': 'com.vite.Main'
+    }
+
     into("META-INF/maven/$project.group/$baseName") {
         from "$buildDir/tmp/maven/"
     }
 }
 jar.dependsOn generatePom
+jar.dependsOn compileJava
 
 /*
 =========================================================
@@ -126,8 +133,7 @@ repositories {
 
 dependencies {
     compile(group: 'com.vite', name: 'vite-server-api', version: '0.0.0-SNAPSHOT')
-    compile(group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.7')
-    compile(group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.7')
+    compile(group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.6.0')
 
     testCompile(group: 'org.hamcrest', name: 'hamcrest-core', version: '1.3')
     testCompile(group: 'org.hamcrest', name: 'hamcrest-library', version: '1.3')
