@@ -6,7 +6,6 @@ Apply plugins
 apply plugin: 'idea'
 apply plugin: 'java'
 apply plugin: 'maven'
-apply plugin: 'maven-publish'
 
 /*
 =========================================================
@@ -86,23 +85,6 @@ task makeDocumentation(type: Tar) {
     from(project.files("$buildDir/javadocs"))
 }
 makeDocumentation.dependsOn docs
-
-/*
-=========================================================
-  Publishing
-=========================================================
-*/
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            groupId = group
-            artifactId = artifactName
-            version = project.version
-
-            from components.java
-        }
-    }
-}
 
 /*
 =========================================================
