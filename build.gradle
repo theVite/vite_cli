@@ -89,23 +89,6 @@ makeDocumentation.dependsOn docs
 
 /*
 =========================================================
-    Source code tar Generation
-=========================================================
-*/
-task makeSource(type: Jar) {
-    baseName = artifactName
-    version = project.version
-    extension = "jar"
-    classifier = "src"
-    destinationDir = file("$buildDir/libs/")
-    from(project.files("src"), project.file("README*"), project.file("$buildDir/tmp/maven/pom.xml"))
-}
-makeSource.dependsOn generatePom
-compileJava.dependsOn makeSource
-compileJava.dependsOn docs
-
-/*
-=========================================================
   Publishing
 =========================================================
 */

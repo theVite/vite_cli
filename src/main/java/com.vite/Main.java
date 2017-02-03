@@ -5,6 +5,9 @@ import com.vite.service.ViteClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Main class that runs the client
+ */
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
