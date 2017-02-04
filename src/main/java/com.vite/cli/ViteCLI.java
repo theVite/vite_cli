@@ -17,7 +17,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * Runs the Client
@@ -27,8 +26,7 @@ public class ViteCLI implements CLI {
     private final PrintWriter out;
     private static final Logger LOGGER = LoggerFactory.getLogger(ViteCLI.class);
     private final Client client;
-    private final Map<String, Function<String[], String>> commands = new HashMap<>();
-    private final Map<String, String> commandDescriptions = new HashMap<>();
+    private final Map<String, Command> commands = new HashMap<>();
     private static final String EXIT_MESSAGE = "Closing the commandline interface...";
     private static final String HELP_MESSAGE = "Type 'help' for help";
 
@@ -37,11 +35,10 @@ public class ViteCLI implements CLI {
         in = new BufferedReader(new InputStreamReader(inputStream));
         out = new PrintWriter(new OutputStreamWriter(outputStream));
         this.client = client;
-        commands.put("ping", this::ping);
-        commandDescriptions.put("ping", "Pings the server");
-        commands.put("quit", this::quit);
-        commandDescriptions.put("quit", "Exits the cli");
-        commands.put("help", this::help);
+        commands.put(CommandName.PING.toString(), new Command(CommandName.PING, "Pings the server", this::ping));
+        commands.put(CommandName.QUIT.toString(), new Command(CommandName.QUIT, "Exits the client", this::quit));
+        commands.put(CommandName.EXIT.toString(), new Command(CommandName.EXIT, "Exits the client", this::quit));
+        commands.put(CommandName.HELP.toString(), new Command(CommandName.HELP, "Displays help messages", this::help));
     }
 
     @Override
@@ -69,7 +66,7 @@ public class ViteCLI implements CLI {
         StringBuilder sb = new StringBuilder();
 
         if (args.length == 0) {
-            List<String> sortedDescs = new ArrayList<>(commandDescriptions.keySet());
+            List<String> sortedDescs = new ArrayList<>(commands.keySet());
             Collections.sort(sortedDescs);
             sortedDescs.forEach(
                     key -> sb.append(formatHelpMessage(key))
@@ -95,10 +92,10 @@ public class ViteCLI implements CLI {
      */
      private String formatHelpMessage(String command) {
         StringBuilder sb = new StringBuilder();
-        if (commandDescriptions.containsKey(command)) {
+        if (commands.containsKey(command)) {
             sb.append(command);
             sb.append("\t");
-            sb.append(commandDescriptions.get(command));
+            sb.append(commands.get(command).getDescription());
             sb.append("\n");
             return sb.toString();
         }
@@ -120,7 +117,7 @@ public class ViteCLI implements CLI {
                 if (command.length == 0) {
                     continue;
                 }
-                final String commandName = command[0];
+                final CommandName commandName = CommandName.valueOf(command[0]);
                 final String[] commandArgs = Arrays.copyOfRange(command, 1, command.length);
 
                 if (!commands.containsKey(commandName)) {
@@ -130,7 +127,7 @@ public class ViteCLI implements CLI {
                     out.flush();
                     continue;
                 }
-                out.println(commands.get(commandName).apply(commandArgs));
+                out.println(commands.get(commandName).execute(commandArgs));
                 out.flush();
             }
         } catch (Exception ex) {

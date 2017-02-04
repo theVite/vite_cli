@@ -37,16 +37,6 @@ public class ViteCLITest extends org.hamcrest.Matchers {
     }
 
     /**
-     *Tests that help works as expected
-     */
-    @Test
-    public void testHelp() {
-        assertThat(cli.help("ping"), is(equalTo("ping\tPings the server\n")));
-        assertThat(cli.help("quit"), is(equalTo("quit\tExits the cli\n")));
-        assertThat(cli.help(), is(equalTo("ping\tPings the server\nquit\tExits the cli\n")));
-    }
-
-    /**
      * Tests that ping works as expected
      */
     @Test
