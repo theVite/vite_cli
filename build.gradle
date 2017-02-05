@@ -1,0 +1,107 @@
+/*
+=========================================================
+Apply plugins
+=========================================================
+*/
+apply plugin: 'idea'
+apply plugin: 'java'
+apply plugin: 'maven'
+
+/*
+=========================================================
+Repo Info
+=========================================================
+*/
+group = 'com.vite'
+description = 'Vite command line interface'
+
+/*
+=========================================================
+  Create self contained jar
+=========================================================
+*/
+
+def artifactName = 'vite-cli'
+
+task generatePom << {
+    pom {
+        project {
+            artifactId = artifactName
+            name = artifactName
+        }
+    }.writeTo("$buildDir/tmp/maven/pom.xml")
+}
+
+jar {
+    baseName = artifactName
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    manifest {
+        attributes 'Implementation-Title': artifactName,
+                'Implementation-Version': version,
+                'Built-By': 'theVite',
+                'Built-Date': new Date(),
+                'Main-Class': 'com.vite.Main'
+    }
+
+    into("META-INF/maven/$project.group/$baseName") {
+        from "$buildDir/tmp/maven/"
+    }
+}
+jar.dependsOn generatePom
+jar.dependsOn compileJava
+
+/*
+=========================================================
+    Javadocs Generation
+=========================================================
+*/
+task docs(type: Javadoc) {
+    source = sourceSets.main.java
+    destinationDir = file("$project.buildDir/javadocs")
+    failOnError = false
+}
+
+task makeJavadoc(type: Jar) {
+    baseName = artifactName
+    version = project.version
+    extension = "jar"
+    classifier = "javadoc"
+    destinationDir = file("$buildDir/libs/")
+    from(files(project.files("$buildDir/javadocs"), file("$buildDir/tmp/maven/")))
+}
+makeJavadoc.dependsOn generatePom
+makeJavadoc.dependsOn docs
+
+task makeDocumentation(type: Tar) {
+    baseName = artifactName
+    version = project.version
+    extension = "tar.gz"
+    compression = Compression.GZIP
+    classifier = "javadoc"
+    destinationDir = file("$buildDir/")
+    from(project.files("$buildDir/javadocs"))
+}
+makeDocumentation.dependsOn docs
+
+/*
+=========================================================
+   Load Dependencies
+=========================================================
+*/
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    compile(group: 'com.vite', name: 'vite-server-api', version: '0.0.0-SNAPSHOT')
+    compile(group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.6.0')
+
+    testCompile(group: 'org.hamcrest', name: 'hamcrest-core', version: '1.3')
+    testCompile(group: 'org.hamcrest', name: 'hamcrest-library', version: '1.3')
+    testCompile(group: 'junit', name: 'junit', version: '4.12')
+    testCompile(group: 'org.mockito', name: 'mockito-core', version: '1.8.5')
+}
